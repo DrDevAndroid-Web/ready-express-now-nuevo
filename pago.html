@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sube la captura de pantalla del comprobante de pago de tu pedido en Ready Express Now." />
+  <title>Enviar comprobante - Ready Express Now</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="./css/styles.css?v8" />
+  <link rel="icon" type="image/png" href="./images/logo.png" />
+</head>
+<body class="payment-page">
+
+  <!-- Skip Link -->
+  <a href="#main" class="skip-link">Ir al contenido principal</a>
+
+  <nav class="navbar">
+    <a class="navbar-logo" href="./index.html" aria-label="Ready Express Now">
+      <img src="./images/logo.png" alt="Ready Express Now" onerror="this.style.display='none'">
+      <span class="navbar-logo-text">Ready Express Now</span>
+    </a>
+    <div class="navbar-links">
+      <a href="./index.html#combos">Combos</a>
+      <a href="./index.html#alimentos">Arma tu pedido</a>
+      <a href="./ayuda.html#captura-comprobante">Ayuda de pago</a>
+      <a href="./index.html#contacto">Contacto</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="./ayuda.html#captura-comprobante" class="payment-help-btn" aria-label="Ayuda importante sobre pagos y comprobantes">
+        <span>!</span>
+        Ayuda de pago
+      </a>
+    </div>
+  </nav>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumb-nav">
+    <a href="./index.html">Inicio</a>
+    <span>/</span>
+    <span>Enviar comprobante</span>
+  </div>
+
+  <main id="main">
+    <section class="payment-page-hero">
+      <div class="payment-page-inner">
+        <span class="section-tag">Último paso</span>
+        <h1>Sube la captura de pantalla del pago</h1>
+        <p>
+          Tu pedido ya fue creado. Si saliste a pagar por Zelle o Tocopay, vuelve aqui y adjunta una captura clara del comprobante para poder confirmar la orden.
+        </p>
+      </div>
+    </section>
+
+    <section class="payment-page-section">
+      <div id="payment-empty-state" class="payment-empty-state" style="display:none">
+        <h2>No hay un pago pendiente en este navegador</h2>
+        <p>Si ya hiciste un pedido desde otro dispositivo, escribenos por WhatsApp y envia la captura del comprobante.</p>
+        <a href="./index.html#combos" class="btn-primary">Volver a la tienda</a>
+      </div>
+
+      <div id="payment-content" class="payment-page-card" style="display:none">
+        <div class="payment-info">
+          <div>
+            <span>Orden <strong id="payment-order-id">#-</strong></span>
+            <br>
+            <span style="font-size:0.8rem;color:var(--gray)">Envia el monto exacto</span>
+          </div>
+          <strong id="payment-total">$0.00</strong>
+        </div>
+
+        <span class="method-label">Selecciona el metodo que usaste para pagar <span class="required">*</span></span>
+        <div class="methods-grid">
+          <div class="method-card" data-method="WellsFargoZelle">
+            <span>🏦</span>
+            <strong>Zelle</strong>
+            <small>Wells Fargo / Zelle</small>
+          </div>
+          <div class="method-card" data-method="Tocopay">
+            <span>💳</span>
+            <strong>Tocopay</strong>
+            <small>Transferencia Tocopay</small>
+          </div>
+        </div>
+        <input type="hidden" id="payment-method-input">
+
+        <form id="payment-form" novalidate>
+          <div class="payment-proof-note">
+            <strong>Importante:</strong> sube una captura de pantalla clara del comprobante.
+            Debe verse el monto, la fecha y la referencia del pago. Sin esa captura no podemos confirmar tu orden rapidamente.
+            <a href="./ayuda.html#captura-comprobante" target="_blank" rel="noopener">Ver como debe verse el comprobante</a>
+          </div>
+          <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Subir comprobante">
+            <span>📎</span>
+            <p>Arrastra tu comprobante aqui</p>
+            <small>o haz clic para seleccionar JPG o PNG</small>
+          </div>
+          <img id="file-preview" src="" alt="Vista previa del comprobante">
+          <input type="file" id="payment-file" accept="image/*" style="display:none">
+          <p class="form-error" id="payment-error"></p>
+          <button type="submit" class="form-submit">Enviar Comprobante</button>
+        </form>
+      </div>
+
+      <div class="success-screen payment-success" id="success-screen">
+        <div class="success-inner">
+          <span class="success-icon">✓</span>
+          <h2>Comprobante enviado</h2>
+          <p>Recibimos tu captura de pantalla correctamente.</p>
+          <p class="order-ref">Orden <span id="success-order-ref">#-</span></p>
+          <div class="success-note">
+            Te avisaremos por WhatsApp cuando el pago sea verificado. El proceso normalmente toma entre <strong>15 – 30 minutos</strong>.
+          </div>
+          <button class="btn-primary" id="success-close" style="display:inline-block">Volver a la tienda</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initPaymentPage } from "./js/payment.js?v8";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initPaymentPage();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+</html>
