@@ -210,17 +210,6 @@ function resetPaymentForm() {
 
   const errorEl = document.getElementById("payment-error");
   if (errorEl) errorEl.style.display = "none";
-
-  selectMethod(null);
-}
-
-function selectMethod(method) {
-  document.querySelectorAll(".method-card").forEach((card) => card.classList.remove("selected"));
-  if (method) {
-    document.querySelector(`[data-method="${method}"]`)?.classList.add("selected");
-  }
-  const methodInput = document.getElementById("payment-method-input");
-  if (methodInput) methodInput.value = method || "";
 }
 
 function initDropzone() {
@@ -277,7 +266,7 @@ function setFile(file, input, preview, dropzone) {
 
 async function submitPayment(form) {
   const btn = form.querySelector('button[type="submit"]');
-  const method = document.getElementById("payment-method-input")?.value;
+  const method = localStorage.getItem("ren_selected_payment_method");
   const fileInput = document.getElementById("payment-file");
 
   hidePaymentError();
@@ -288,7 +277,7 @@ async function submitPayment(form) {
   }
 
   if (!method) {
-    showPaymentError("❌ Por favor selecciona cómo pagaste: Zelle o Tocopay.");
+    showPaymentError("❌ No se encontró el método de pago seleccionado. Por favor vuelve al carrito y confirma tu pedido nuevamente.");
     return;
   }
 
@@ -377,8 +366,8 @@ async function downloadReceipt() {
       items: []
     };
 
-    const methodId = document.getElementById("payment-method-input")?.value;
-    const methodName = document.querySelector(`[data-method="${methodId}"] strong`)?.textContent || "-";
+    const methodId = localStorage.getItem("ren_selected_payment_method");
+    const methodName = window.currentPaymentMethod?.method_name || "-";
 
     const preview = document.getElementById("file-preview");
     const comprobanteImage = preview?.src || null;
