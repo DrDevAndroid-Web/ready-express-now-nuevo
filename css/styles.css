@@ -411,7 +411,7 @@ a:focus,
   line-height: 1.5;
   flex: 1;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 10;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -526,7 +526,7 @@ a:focus,
 .step { text-align: center; }
 .step-icon {
   width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 16px;
-  background: rgba(249,168,37,0.15); border: 2px solid var(--orange);
+  background: rgba(249, 248, 247, 0.15); border: 2px solid var(--orange);
   display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
 }
 .step h3 { color: var(--white); font-size: 1.35rem; font-weight: 700; margin-bottom: 12px; }
@@ -1223,7 +1223,7 @@ button:disabled {
   .card-actions { flex-direction: column; align-items: stretch; }
   .qty-selector { width: 100%; justify-content: space-between; }
   .product-img img { width: 80%; }
-  .product-desc { -webkit-line-clamp: 5; line-clamp: 5; }
+  .product-desc { -webkit-line-clamp: 10; line-clamp: 10; }
 }
 
 /* ── Extra Small Devices (≤375px) ── */
@@ -1381,8 +1381,8 @@ button:disabled {
   }
   .product-desc {
     font-size: 0.7rem;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 10;
+    line-clamp: 10;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
