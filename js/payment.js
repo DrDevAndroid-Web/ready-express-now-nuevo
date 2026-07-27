@@ -1,4 +1,5 @@
 import { uploadPayment } from "./api.js?v8";
+import { cargarMetodosPago } from "./payment-methods.js?v8";
 
 export const PENDING_PAYMENT_KEY = "ren_pending_payment";
 
@@ -43,7 +44,7 @@ export function redirectToPendingPayment() {
   return false;
 }
 
-export function initPaymentPage() {
+export async function initPaymentPage() {
   const pending = getPendingPayment();
   const emptyState = document.getElementById("payment-empty-state");
   const paymentContent = document.getElementById("payment-content");
@@ -66,7 +67,42 @@ export function initPaymentPage() {
   if (paymentContent) paymentContent.style.display = "block";
 
   resetPaymentForm();
+  await renderizarMetodosPago();
   bindPaymentEvents();
+}
+
+async function renderizarMetodosPago() {
+  const metodos = await cargarMetodosPago();
+  const contenedor = document.getElementById("metodos-pago-container");
+
+  if (!contenedor) return;
+
+  if (!metodos.length) {
+    contenedor.innerHTML = '<div class="alerta">Sin métodos de pago disponibles</div>';
+    return;
+  }
+
+  contenedor.innerHTML = metodos.map(metodo => `
+    <div class="method-card" data-method="${metodo.id}" data-method-name="${metodo.method_name}">
+      <div class="method-content">
+        ${metodo.image_url ? `<img src="${metodo.image_url}" alt="${metodo.method_name}" class="method-image">` : `<div class="method-icon">${getIconoMetodo(metodo.method_name)}</div>`}
+        <div class="method-info">
+          <strong>${metodo.method_name}</strong>
+          ${metodo.account_number ? `<small>${metodo.account_number}</small>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getIconoMetodo(nombre) {
+  const iconos = {
+    'zelle': '💳',
+    'tocopay': '💰',
+    'paypal': '🅿️',
+    'stripe': '💸'
+  };
+  return iconos[nombre.toLowerCase()] || '💵';
 }
 
 function bindPaymentEvents() {

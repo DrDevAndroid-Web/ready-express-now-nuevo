@@ -2,10 +2,12 @@ import { initCart } from "./cart.js?v8";
 import { initProducts } from "./products.js?v8";
 import { initCheckout } from "./checkout.js?v8";
 import { redirectToPendingPayment } from "./payment.js?v8";
+import { inicializarMetodosPago } from "./payment-methods.js?v8";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   if (redirectToPendingPayment()) return;
 
+  await inicializarMetodosPago();
   initCart();
   initProducts();
   initCheckout();

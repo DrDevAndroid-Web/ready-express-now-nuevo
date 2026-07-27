@@ -100,6 +100,17 @@
       </div>
     </section>
 
+    <!-- Métodos de Pago Dinámicos -->
+    <section class="help-section">
+      <div class="help-section-header">
+        <span class="section-tag">Métodos de pago</span>
+        <h2>Opciones de pago disponibles</h2>
+      </div>
+      <div id="metodos-pago-ayuda" class="metodos-pago-grid">
+        <div class="cargando">Cargando métodos de pago...</div>
+      </div>
+    </section>
+
     <section class="help-section help-section-muted">
       <div class="help-section-header">
         <span class="section-tag">Opción 1</span>
@@ -228,7 +239,9 @@
     </div>
   </footer>
 
-  <script>
+  <script type="module">
+    import { cargarMetodosPago, renderMetodosEnAyuda } from './js/payment-methods.js?v8';
+
     function initMobileNav() {
       const menuBtn = document.getElementById('menu-btn');
       const mobileNav = document.getElementById('mobile-nav');
@@ -248,7 +261,11 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', initMobileNav);
+    document.addEventListener('DOMContentLoaded', async () => {
+      initMobileNav();
+      await cargarMetodosPago();
+      renderMetodosEnAyuda(document.getElementById('metodos-pago-ayuda'));
+    });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 </body>
