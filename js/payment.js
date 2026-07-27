@@ -68,7 +68,22 @@ export async function initPaymentPage() {
   if (paymentContent) paymentContent.style.display = "block";
 
   resetPaymentForm();
-  await renderizarMetodosPago();
+
+  // Mostrar método de pago seleccionado
+  const selectedMethodId = localStorage.getItem("ren_selected_payment_method");
+  if (selectedMethodId) {
+    const allMethods = await cargarMetodosPago();
+    const selectedMethod = allMethods.find(m => m.id === selectedMethodId);
+    if (selectedMethod) {
+      const methodDisplay = document.getElementById("selected-payment-method");
+      if (methodDisplay) {
+        methodDisplay.textContent = selectedMethod.method_name;
+      }
+      // Guardar referencia del método para el ejemplo
+      window.currentPaymentMethod = selectedMethod;
+    }
+  }
+
   bindPaymentEvents();
 }
 
@@ -126,18 +141,35 @@ function getImagenEjemplo(nombreMetodo) {
 }
 
 function bindPaymentEvents() {
-  document.querySelectorAll(".method-card").forEach((card) => {
-    card.addEventListener("click", () => selectMethod(card.dataset.method));
-  });
-
-  // Accordion de ejemplo
+  // Modal para ver ejemplo de comprobante
   document.getElementById("btn-ver-ejemplo")?.addEventListener("click", (e) => {
     e.preventDefault();
-    const accordion = document.getElementById("accordion-ejemplo");
-    if (accordion.style.display === "none") {
-      accordion.style.display = "block";
-    } else {
-      accordion.style.display = "none";
+    const modal = document.getElementById("example-proof-modal");
+    if (modal) {
+      modal.style.visibility = "visible";
+      // Mostrar imagen de ejemplo del método seleccionado
+      if (window.currentPaymentMethod) {
+        const mapeoEjemplos = {
+          'zelle': './images/ejemplo-zelle.png',
+          'tocopay': './images/ejemplo-tocopay.png'
+        };
+        const key = window.currentPaymentMethod.method_name.toLowerCase();
+        const ejemploSrc = mapeoEjemplos[key] || './images/ejemplo-zelle.png';
+        document.getElementById("proof-example-1").src = ejemploSrc;
+      }
+    }
+  });
+
+  // Cerrar modal de ejemplo
+  document.getElementById("close-example-modal")?.addEventListener("click", () => {
+    const modal = document.getElementById("example-proof-modal");
+    if (modal) modal.style.visibility = "hidden";
+  });
+
+  // Cerrar modal al hacer clic fuera
+  document.getElementById("example-proof-modal")?.addEventListener("click", (e) => {
+    if (e.target.id === "example-proof-modal") {
+      e.target.style.visibility = "hidden";
     }
   });
 

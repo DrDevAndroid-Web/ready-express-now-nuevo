@@ -8,9 +8,51 @@ let currentTotal = 0;
 let currentSelectedMethod = null;
 let checkoutStep = 1;
 const CHECKOUT_STEP_KEY = "ren_checkout_step";
+const CHECKOUT_FORM_KEY = "ren_checkout_form_data";
+
+const FORM_FIELDS = [
+  "sender_name",
+  "sender_phone",
+  "receiver_name",
+  "customer_address",
+  "receiver_phone",
+  "delivery_notes"
+];
 
 function saveCheckoutStep(step) {
   localStorage.setItem(CHECKOUT_STEP_KEY, String(step));
+}
+
+function saveFormData(form) {
+  const data = {};
+  FORM_FIELDS.forEach(fieldName => {
+    const field = form.elements[fieldName];
+    if (field) {
+      data[fieldName] = field.value;
+    }
+  });
+  localStorage.setItem(CHECKOUT_FORM_KEY, JSON.stringify(data));
+}
+
+function restoreFormData(form) {
+  const saved = localStorage.getItem(CHECKOUT_FORM_KEY);
+  if (!saved) return;
+
+  try {
+    const data = JSON.parse(saved);
+    FORM_FIELDS.forEach(fieldName => {
+      const field = form.elements[fieldName];
+      if (field && data[fieldName] !== undefined) {
+        field.value = data[fieldName];
+      }
+    });
+  } catch (err) {
+    console.error("[checkout:restoreFormData]", err);
+  }
+}
+
+function clearFormData() {
+  localStorage.removeItem(CHECKOUT_FORM_KEY);
 }
 
 export function getCheckoutStep() {
@@ -55,6 +97,11 @@ export function showCheckoutModal() {
       </div>`;
   }
 
+  const form = document.getElementById("checkout-form");
+  if (form) {
+    restoreFormData(form);
+  }
+
   currentTotal = getTotal();
   openModal("checkout-modal");
   const savedStep = getCheckoutStep();
@@ -80,6 +127,8 @@ export function initCheckout() {
       const originalText = btn.textContent;
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Cargando...';
+      const form = document.getElementById("checkout-form");
+      if (form) saveFormData(form);
       await goToCheckoutStep(nextStep);
       btn.disabled = false;
       btn.textContent = originalText;
@@ -87,17 +136,31 @@ export function initCheckout() {
   });
 
   // Botón Atrás (Paso 3 → Paso 2)
-  document.getElementById("checkout-back-btn")?.addEventListener("click", () => {
+  document.getElementById("checkout-back-btn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const form = document.getElementById("checkout-form");
+    if (form) saveFormData(form);
     goToCheckoutStep(2);
   });
 
   const form = document.getElementById("checkout-form");
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (checkoutStep === 3) {
-      await submitOrder(form);
-    }
-  });
+  if (form) {
+    // Save form data whenever any field changes
+    FORM_FIELDS.forEach(fieldName => {
+      const field = form.elements[fieldName];
+      if (field) {
+        field.addEventListener("change", () => saveFormData(form));
+        field.addEventListener("blur", () => saveFormData(form));
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (checkoutStep === 3) {
+        await submitOrder(form);
+      }
+    });
+  }
 }
 
 function setupCheckoutFields() {
@@ -210,6 +273,7 @@ async function submitOrder(form) {
     savePendingPayment(currentOrderId, currentTotal);
     clearCart();
     clearCheckoutStep();
+    clearFormData();
     closeModal("checkout-modal");
     form.reset();
     window.location.href = "./pago.html";
