@@ -92,7 +92,13 @@ function initWhatsAppModal() {
 
   if (!modal || !closeBtn) return;
 
-  let modalShown = false;
+  let modalShown = localStorage.getItem('whatsappModalShown') === 'true';
+
+  if (!modalShown) {
+    modal.classList.add('show');
+    modalShown = true;
+    localStorage.setItem('whatsappModalShown', 'true');
+  }
 
   window.addEventListener('scroll', () => {
     const scrollTop = window.scrollY;
@@ -103,15 +109,11 @@ function initWhatsAppModal() {
     if (scrollPercent > 0.4 && !modalShown) {
       modal.classList.add('show');
       modalShown = true;
+      localStorage.setItem('whatsappModalShown', 'true');
     }
   });
 
   closeBtn.addEventListener('click', () => {
     modal.classList.remove('show');
   });
-
-  if (!localStorage.getItem('whatsappModalShown')) {
-    modal.classList.add('show');
-    localStorage.setItem('whatsappModalShown', 'true');
-  }
 }

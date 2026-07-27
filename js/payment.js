@@ -204,8 +204,10 @@ async function submitPayment(form) {
   try {
     await uploadPayment(formData);
     btn.innerHTML = '<span style="color:var(--green)">✓</span> ¡Enviado exitosamente!';
-    clearPendingPayment();
-    setTimeout(() => showSuccess(), 800);
+    setTimeout(() => {
+      showSuccess();
+      clearPendingPayment();
+    }, 800);
   } catch (err) {
     const message = err.message || `❌ No pudimos enviar tu comprobante. Por favor intenta de nuevo o contacta a nuestro equipo: 📱 +53 5 8324155`;
     showPaymentError(message);

@@ -224,9 +224,9 @@ async function submitOrder(form) {
     currentOrderId = order.id;
     currentTotal = orderData.total;
 
+    savePendingPayment(currentOrderId, currentTotal);
     clearCart();
     closeModal("checkout-modal");
-    savePendingPayment(currentOrderId, currentTotal);
     form.reset();
     window.location.href = "./pago.html";
   } catch (err) {
