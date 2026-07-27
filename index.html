@@ -505,9 +505,9 @@
           <span class="method-label">Elige cómo deseas pagar <span class="required">*</span></span>
           <div class="methods-grid" id="checkout-methods-container"></div>
 
-          <div id="payment-instructions" style="display:none;margin-top:20px;padding:16px;background:#e7f5ff;border-left:4px solid var(--primary);border-radius:4px">
-            <strong>Instrucciones de pago:</strong>
-            <div id="payment-instructions-text" style="margin-top:8px;font-size:0.95rem;line-height:1.6"></div>
+          <div id="payment-instructions" style="display:none;margin-top:20px;padding:16px;background:#e7f5ff;border-left:4px solid var(--primary);border-radius:4px;max-height:none;overflow:visible">
+            <strong style="display:block;margin-bottom:12px">Instrucciones de pago:</strong>
+            <div id="payment-instructions-text" style="font-size:0.95rem;line-height:1.8;color:#333;word-wrap:break-word;white-space:pre-wrap"></div>
           </div>
 
           <p class="form-error" id="checkout-error"></p>

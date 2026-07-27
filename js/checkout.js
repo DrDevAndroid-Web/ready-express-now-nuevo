@@ -282,7 +282,7 @@ function selectPaymentMethod(methodId, methodName, instructions) {
   const instructionsText = document.getElementById("payment-instructions-text");
 
   if (instructions) {
-    instructionsText.innerHTML = instructions.split('\n').map(line => `<div>${escapeHtml(line)}</div>`).join('');
+    instructionsText.textContent = instructions;
     instructionsDiv.style.display = "block";
   } else {
     instructionsDiv.style.display = "none";
