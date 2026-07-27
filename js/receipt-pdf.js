@@ -120,9 +120,10 @@ export async function generarPDFRecibo(order, metodoPago, comprobanteLogo, compr
       yPosition += 10;
 
       try {
-        const imgWidth = pageWidth - (margin * 2);
-        const imgHeight = 80;
-        doc.addImage(comprobanteImage, "JPEG", margin, yPosition, imgWidth, imgHeight);
+        const maxImgWidth = 100;
+        const imgHeight = 60;
+        const imgX = margin + (pageWidth - margin * 2 - maxImgWidth) / 2;
+        doc.addImage(comprobanteImage, "JPEG", imgX, yPosition, maxImgWidth, imgHeight);
         yPosition += imgHeight + 10;
       } catch (err) {
         console.warn("No se pudo agregar comprobante:", err);
