@@ -7,6 +7,20 @@ let currentOrderId = null;
 let currentTotal = 0;
 let currentSelectedMethod = null;
 let checkoutStep = 1;
+const CHECKOUT_STEP_KEY = "ren_checkout_step";
+
+function saveCheckoutStep(step) {
+  localStorage.setItem(CHECKOUT_STEP_KEY, String(step));
+}
+
+function getCheckoutStep() {
+  const saved = localStorage.getItem(CHECKOUT_STEP_KEY);
+  return saved ? Math.min(parseInt(saved), 3) : 1;
+}
+
+function clearCheckoutStep() {
+  localStorage.removeItem(CHECKOUT_STEP_KEY);
+}
 
 export function showCheckoutModal() {
   const cart = getCart();
@@ -33,7 +47,8 @@ export function showCheckoutModal() {
 
   currentTotal = getTotal();
   openModal("checkout-modal");
-  goToCheckoutStep(1, false);
+  const savedStep = getCheckoutStep();
+  goToCheckoutStep(savedStep, false);
 }
 
 export function initCheckout() {
@@ -41,7 +56,10 @@ export function initCheckout() {
 
   document.getElementById("checkout-btn")?.addEventListener("click", showCheckoutModal);
   document.getElementById("cart-checkout-btn")?.addEventListener("click", showCheckoutModal);
-  document.getElementById("checkout-close")?.addEventListener("click", () => closeModal("checkout-modal"));
+  document.getElementById("checkout-close")?.addEventListener("click", () => {
+    closeModal("checkout-modal");
+    clearCheckoutStep();
+  });
 
   // Botón Siguiente (Paso 1 → Paso 2, Paso 2 → Paso 3)
   document.getElementById("checkout-next-btn")?.addEventListener("click", async (e) => {
@@ -95,6 +113,7 @@ async function goToCheckoutStep(step, validate = true) {
   if (step === 3 && validate && !validateCheckoutStep(2)) return false;
 
   checkoutStep = step;
+  saveCheckoutStep(step);
 
   // Ocultar todos los steps
   document.querySelectorAll("[data-checkout-step]").forEach((el) => (el.style.display = "none"));
@@ -178,6 +197,7 @@ async function submitOrder(form) {
 
     savePendingPayment(currentOrderId, currentTotal);
     clearCart();
+    clearCheckoutStep();
     closeModal("checkout-modal");
     form.reset();
     window.location.href = "./pago.html";
@@ -195,8 +215,9 @@ async function submitOrder(form) {
 
 async function renderPaymentMethods() {
   try {
-    // Mostrar orden y total
-    document.getElementById("checkout-order-display").textContent = `#${currentOrderId || "-"}`;
+    // Mostrar resumen del orden y total
+    const tempOrderNumber = `ORD-${Date.now().toString().slice(-8)}`;
+    document.getElementById("checkout-order-display").textContent = tempOrderNumber;
     document.getElementById("checkout-total-display").textContent = `$${currentTotal.toFixed(2)}`;
 
     // Mostrar estado de carga
