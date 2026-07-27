@@ -270,7 +270,7 @@ async function submitOrder(form) {
     currentOrderId = order.id;
     currentTotal = orderData.total;
 
-    savePendingPayment(currentOrderId, currentTotal);
+    savePendingPayment(currentOrderId, currentTotal, orderData.items);
     clearCart();
     clearCheckoutStep();
     clearFormData();

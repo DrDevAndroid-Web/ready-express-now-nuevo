@@ -7,12 +7,13 @@ export const PENDING_PAYMENT_KEY = "ren_pending_payment";
 let pendingOrderId = null;
 let pendingTotal = 0;
 
-export function savePendingPayment(orderId, total) {
+export function savePendingPayment(orderId, total, items = []) {
   localStorage.setItem(
     PENDING_PAYMENT_KEY,
     JSON.stringify({
       orderId,
       total,
+      items,
       createdAt: new Date().toISOString(),
     })
   );
@@ -360,10 +361,22 @@ async function downloadReceipt() {
   try {
     await cargarLibreriasPDF();
 
+    const checkoutFormData = JSON.parse(localStorage.getItem("ren_checkout_form_data") || "{}");
+    const pendingPayment = getPendingPayment();
+
     const orderData = {
       id: pendingOrderId,
       total: pendingTotal,
-      items: []
+      sender_name: checkoutFormData.sender_name || "-",
+      sender_phone: checkoutFormData.sender_phone || "-",
+      customer_name: checkoutFormData.sender_name || "-",
+      customer_phone: checkoutFormData.sender_phone || "-",
+      customer_email: checkoutFormData.customer_email || "-",
+      receiver_name: checkoutFormData.receiver_name || "-",
+      receiver_phone: checkoutFormData.receiver_phone || "-",
+      customer_address: checkoutFormData.customer_address || "-",
+      delivery_notes: checkoutFormData.delivery_notes || "",
+      items: pendingPayment?.items || []
     };
 
     const methodId = localStorage.getItem("ren_selected_payment_method");
