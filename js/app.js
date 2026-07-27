@@ -1,6 +1,6 @@
-import { initCart } from "./cart.js?v8";
+import { initCart, getCart } from "./cart.js?v8";
 import { initProducts } from "./products.js?v8";
-import { initCheckout } from "./checkout.js?v8";
+import { initCheckout, openCheckoutAtSavedStep, hasSavedCheckoutStep } from "./checkout.js?v8";
 import { redirectToPendingPayment } from "./payment.js?v8";
 import { inicializarMetodosPago } from "./payment-methods.js?v8";
 
@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   initCart();
   initProducts();
   initCheckout();
+
+  // Restaurar checkout si hay paso guardado y carrito con items
+  if (hasSavedCheckoutStep() && getCart().length > 0) {
+    setTimeout(() => openCheckoutAtSavedStep(), 500);
+  }
+
   initAccessibility();
   initMobileNav();
   initWhatsAppModal();

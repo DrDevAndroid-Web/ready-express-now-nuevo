@@ -13,13 +13,23 @@ function saveCheckoutStep(step) {
   localStorage.setItem(CHECKOUT_STEP_KEY, String(step));
 }
 
-function getCheckoutStep() {
+export function getCheckoutStep() {
   const saved = localStorage.getItem(CHECKOUT_STEP_KEY);
   return saved ? Math.min(parseInt(saved), 3) : 1;
 }
 
+export function hasSavedCheckoutStep() {
+  return localStorage.getItem(CHECKOUT_STEP_KEY) !== null;
+}
+
 function clearCheckoutStep() {
   localStorage.removeItem(CHECKOUT_STEP_KEY);
+}
+
+export function openCheckoutAtSavedStep() {
+  if (hasSavedCheckoutStep()) {
+    showCheckoutModal();
+  }
 }
 
 export function showCheckoutModal() {
