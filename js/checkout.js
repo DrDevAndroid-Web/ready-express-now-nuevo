@@ -43,10 +43,18 @@ export function initCheckout() {
   document.getElementById("cart-checkout-btn")?.addEventListener("click", showCheckoutModal);
   document.getElementById("checkout-close")?.addEventListener("click", () => closeModal("checkout-modal"));
 
-  // Botón Siguiente (Paso 1 → Paso 2)
-  document.getElementById("checkout-next-btn")?.addEventListener("click", async () => {
-    if (validateCheckoutStep(1)) {
-      await goToCheckoutStep(2);
+  // Botón Siguiente (Paso 1 → Paso 2, Paso 2 → Paso 3)
+  document.getElementById("checkout-next-btn")?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const nextStep = checkoutStep + 1;
+    if (validateCheckoutStep(checkoutStep)) {
+      const btn = e.target;
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Cargando...';
+      await goToCheckoutStep(nextStep);
+      btn.disabled = false;
+      btn.textContent = originalText;
     }
   });
 
@@ -58,20 +66,6 @@ export function initCheckout() {
   const form = document.getElementById("checkout-form");
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (checkoutStep === 2) {
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalText = submitBtn?.textContent || "Confirmar Pedido";
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner"></span>Cargando métodos...';
-      }
-      await goToCheckoutStep(3);
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      }
-      return;
-    }
     if (checkoutStep === 3) {
       await submitOrder(form);
     }
