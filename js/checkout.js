@@ -314,7 +314,7 @@ async function renderPaymentMethods() {
 
     // Renderizar métodos de pago
     container.innerHTML = metodos.map(metodo => `
-      <div class="method-card" data-method="${metodo.id}" data-method-name="${metodo.method_name}" data-instructions="${escapeHtml(metodo.instructions || '')}">
+      <div class="method-card" data-method="${metodo.method_name}" data-method-id="${metodo.id}" data-instructions="${escapeHtml(metodo.instructions || '')}">
         <div class="method-content">
           ${metodo.image_url ? `<img src="${metodo.image_url}" alt="${metodo.method_name}" class="method-image">` : `<div class="method-icon">${getIconoMetodo(metodo.method_name)}</div>`}
           <div class="method-info">
@@ -328,7 +328,7 @@ async function renderPaymentMethods() {
     // Event listeners para seleccionar método
     container.querySelectorAll(".method-card").forEach(card => {
       card.addEventListener("click", () => {
-        selectPaymentMethod(card.dataset.method, card.dataset.methodName, card.dataset.instructions);
+        selectPaymentMethod(card.dataset.method, card.dataset.instructions);
       });
     });
   } catch (err) {
@@ -336,12 +336,12 @@ async function renderPaymentMethods() {
   }
 }
 
-function selectPaymentMethod(methodId, methodName, instructions) {
+function selectPaymentMethod(methodName, instructions) {
   // Marcar método seleccionado
   document.querySelectorAll(".method-card").forEach(card => card.classList.remove("selected"));
-  document.querySelector(`[data-method="${methodId}"]`)?.classList.add("selected");
+  document.querySelector(`[data-method="${methodName}"]`)?.classList.add("selected");
 
-  currentSelectedMethod = methodId;
+  currentSelectedMethod = methodName;
 
   // Mostrar instrucciones
   const instructionsDiv = document.getElementById("payment-instructions");
