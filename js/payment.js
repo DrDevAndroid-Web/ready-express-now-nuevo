@@ -1,5 +1,6 @@
 import { uploadPayment } from "./api.js?v8";
-import { cargarMetodosPago } from "./payment-methods.js?v8";
+import { cargarMetodosPago, obtenerMetodoPago } from "./payment-methods.js?v8";
+import { generarPDFRecibo, cargarLibreriasPDF } from "./receipt-pdf.js?v8";
 
 export const PENDING_PAYMENT_KEY = "ren_pending_payment";
 
@@ -83,7 +84,7 @@ async function renderizarMetodosPago() {
   }
 
   contenedor.innerHTML = metodos.map(metodo => `
-    <div class="method-card" data-method="${metodo.id}" data-method-name="${metodo.method_name}">
+    <div class="method-card" data-method="${metodo.id}" data-method-name="${metodo.method_name}" data-ejemplo="${getImagenEjemplo(metodo.method_name)}">
       <div class="method-content">
         ${metodo.image_url ? `<img src="${metodo.image_url}" alt="${metodo.method_name}" class="method-image">` : `<div class="method-icon">${getIconoMetodo(metodo.method_name)}</div>`}
         <div class="method-info">
@@ -93,6 +94,17 @@ async function renderizarMetodosPago() {
       </div>
     </div>
   `).join('');
+
+  // Agregar event listeners para mostrar imagen de ejemplo
+  document.querySelectorAll(".method-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const ejemploSrc = card.dataset.ejemplo;
+      const imgEjemplo = document.getElementById("img-ejemplo-comprobante");
+      if (imgEjemplo && ejemploSrc) {
+        imgEjemplo.src = ejemploSrc;
+      }
+    });
+  });
 }
 
 function getIconoMetodo(nombre) {
@@ -105,9 +117,37 @@ function getIconoMetodo(nombre) {
   return iconos[nombre.toLowerCase()] || '💵';
 }
 
+function getImagenEjemplo(nombreMetodo) {
+  const mapeo = {
+    'zelle': './images/ejemplo-zelle.png',
+    'tocopay': './images/ejemplo-tocopay.png'
+  };
+  return mapeo[nombreMetodo.toLowerCase()] || '';
+}
+
 function bindPaymentEvents() {
   document.querySelectorAll(".method-card").forEach((card) => {
     card.addEventListener("click", () => selectMethod(card.dataset.method));
+  });
+
+  // Accordion de ejemplo
+  document.getElementById("btn-ver-ejemplo")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const accordion = document.getElementById("accordion-ejemplo");
+    if (accordion.style.display === "none") {
+      accordion.style.display = "block";
+    } else {
+      accordion.style.display = "none";
+    }
+  });
+
+  // Botón cancelar
+  document.getElementById("btn-cancelar-pago")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (confirm("¿Estás seguro de que deseas cancelar? Se perderán los datos del pedido.")) {
+      clearPendingPayment();
+      window.location.href = "./index.html";
+    }
   });
 
   initDropzone();
@@ -241,7 +281,7 @@ async function submitPayment(form) {
     await uploadPayment(formData);
     btn.innerHTML = '<span style="color:var(--green)">✓</span> ¡Enviado exitosamente!';
     setTimeout(() => {
-      showSuccess();
+      showReceiptModal(form);
       clearPendingPayment();
     }, 800);
   } catch (err) {
@@ -263,6 +303,74 @@ function showPaymentError(message) {
 function hidePaymentError() {
   const errorEl = document.getElementById("payment-error");
   if (errorEl) errorEl.style.display = "none";
+}
+
+function showReceiptModal(form) {
+  const modal = document.getElementById("receipt-modal");
+  if (!modal) return;
+
+  modal.style.visibility = "visible";
+
+  const downloadBtn = document.getElementById("btn-descargar-recibo");
+  const skipBtn = document.getElementById("btn-omitir-recibo");
+
+  if (downloadBtn) {
+    downloadBtn.onclick = async () => {
+      await downloadReceipt();
+      showSuccess();
+      closeReceiptModal();
+    };
+  }
+
+  if (skipBtn) {
+    skipBtn.onclick = () => {
+      showSuccess();
+      closeReceiptModal();
+    };
+  }
+}
+
+function closeReceiptModal() {
+  const modal = document.getElementById("receipt-modal");
+  if (modal) modal.style.visibility = "hidden";
+}
+
+async function downloadReceipt() {
+  try {
+    await cargarLibreriasPDF();
+
+    const orderData = {
+      id: pendingOrderId,
+      total: pendingTotal,
+      items: []
+    };
+
+    const methodId = document.getElementById("payment-method-input")?.value;
+    const methodName = document.querySelector(`[data-method="${methodId}"] strong`)?.textContent || "-";
+
+    const preview = document.getElementById("file-preview");
+    const comprobanteImage = preview?.src || null;
+
+    const logoImg = document.querySelector(".navbar-logo img");
+    let logo = null;
+    if (logoImg?.src) {
+      try {
+        const response = await fetch(logoImg.src);
+        const blob = await response.blob();
+        logo = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch (err) {
+        console.warn("Could not load logo:", err);
+      }
+    }
+
+    await generarPDFRecibo(orderData, methodName, logo, comprobanteImage);
+  } catch (err) {
+    console.error("Error generating receipt:", err);
+  }
 }
 
 function showSuccess() {

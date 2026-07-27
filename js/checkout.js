@@ -5,6 +5,7 @@ import { cargarMetodosPago, renderMetodosEnCheckout } from "./payment-methods.js
 
 let currentOrderId = null;
 let currentTotal = 0;
+let currentSelectedMethod = null;
 let checkoutStep = 1;
 
 export function showCheckoutModal() {
@@ -30,109 +31,49 @@ export function showCheckoutModal() {
       </div>`;
   }
 
+  currentTotal = getTotal();
   openModal("checkout-modal");
   goToCheckoutStep(1, false);
 }
 
 export function initCheckout() {
+  setupCheckoutFields();
+
   document.getElementById("checkout-btn")?.addEventListener("click", showCheckoutModal);
   document.getElementById("cart-checkout-btn")?.addEventListener("click", showCheckoutModal);
   document.getElementById("checkout-close")?.addEventListener("click", () => closeModal("checkout-modal"));
 
+  // Botón Siguiente (Paso 1 → Paso 2)
+  document.getElementById("checkout-next-btn")?.addEventListener("click", async () => {
+    if (validateCheckoutStep(1)) {
+      await goToCheckoutStep(2);
+    }
+  });
+
+  // Botón Atrás (Paso 3 → Paso 2)
+  document.getElementById("checkout-back-btn")?.addEventListener("click", () => {
+    goToCheckoutStep(2);
+  });
+
   const form = document.getElementById("checkout-form");
-  setupCheckoutSlides(form);
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (checkoutStep === 1) {
-      goToCheckoutStep(2);
+    if (checkoutStep === 2) {
+      await goToCheckoutStep(3);
       return;
     }
-    await submitOrder(form);
+    if (checkoutStep === 3) {
+      await submitOrder(form);
+    }
   });
 }
 
-function setupCheckoutSlides(form) {
-  if (!form || form.dataset.slidesReady === "true") return;
-
-  const senderName = form.querySelector("#sender_name")?.closest(".form-group");
-  const senderPhone = form.querySelector("#sender_phone")?.closest(".form-group");
-  const receiverName = form.querySelector("#receiver_name")?.closest(".form-group");
-  const address = form.querySelector("#customer_address")?.closest(".form-group");
-  const receiverPhone = form.querySelector("#receiver_phone")?.closest(".form-group");
-  const notes = form.querySelector("#delivery_notes")?.closest(".form-group");
-  const errorEl = document.getElementById("checkout-error");
-  const submitBtn = form.querySelector('button[type="submit"]');
-
-  if (!senderName || !senderPhone || !receiverName || !address || !receiverPhone || !submitBtn) return;
-
+function setupCheckoutFields() {
   updateLabel("sender_name", "Nombre del que envía");
   updateLabel("sender_phone", "Teléfono / WhatsApp");
   updateLabel("receiver_name", "Nombre de quien recibe");
   updateLabel("customer_address", "Dirección de entrega en Guantánamo");
   updateLabel("receiver_phone", "Teléfono de quien recibe");
-
-  const progress = document.createElement("div");
-  progress.className = "checkout-progress";
-  progress.innerHTML = `
-    <span class="checkout-step-dot active" data-step-dot="1">1</span>
-    <span class="checkout-step-line"></span>
-    <span class="checkout-step-dot" data-step-dot="2">2</span>`;
-
-  const senderSlide = createCheckoutSlide(
-    "sender",
-    "Paso 1 de 2",
-    "Datos de la persona que envía",
-    [senderName, senderPhone]
-  );
-
-  const receiverSlide = createCheckoutSlide(
-    "receiver",
-    "Paso 2 de 2",
-    "Datos de la persona que recibe",
-    [receiverName, address, receiverPhone, notes].filter(Boolean)
-  );
-
-  form.insertBefore(progress, form.firstElementChild);
-  form.insertBefore(senderSlide, errorEl);
-  form.insertBefore(receiverSlide, errorEl);
-
-  submitBtn.id = "checkout-submit-btn";
-  submitBtn.textContent = "Enviar Pedido";
-
-  const actions = document.createElement("div");
-  actions.className = "checkout-actions";
-  const backBtn = document.createElement("button");
-  backBtn.type = "button";
-  backBtn.id = "checkout-back-btn";
-  backBtn.className = "form-submit checkout-back";
-  backBtn.textContent = "Atrás";
-  const nextBtn = document.createElement("button");
-  nextBtn.type = "button";
-  nextBtn.id = "checkout-next-btn";
-  nextBtn.className = "form-submit";
-  nextBtn.textContent = "Siguiente";
-
-  submitBtn.before(actions);
-  actions.append(backBtn, nextBtn, submitBtn);
-
-  nextBtn.addEventListener("click", () => goToCheckoutStep(2));
-  backBtn.addEventListener("click", () => goToCheckoutStep(1));
-
-  form.dataset.slidesReady = "true";
-  goToCheckoutStep(1, false);
-}
-
-function createCheckoutSlide(name, eyebrow, title, fields) {
-  const slide = document.createElement("section");
-  slide.className = "checkout-slide";
-  slide.dataset.checkoutSlide = name;
-  slide.innerHTML = `
-    <div class="checkout-slide-heading">
-      <span>${eyebrow}</span>
-      <h4>${title}</h4>
-    </div>`;
-  fields.forEach((field) => slide.appendChild(field));
-  return slide;
 }
 
 function updateLabel(inputId, text) {
@@ -142,37 +83,39 @@ function updateLabel(inputId, text) {
   label.innerHTML = `${text}${required}`;
 }
 
-function goToCheckoutStep(step, validate = true) {
+async function goToCheckoutStep(step, validate = true) {
   const form = document.getElementById("checkout-form");
   if (!form) return false;
 
   if (step === 2 && validate && !validateCheckoutStep(1)) return false;
+  if (step === 3 && validate && !validateCheckoutStep(2)) return false;
 
   checkoutStep = step;
-  form.querySelectorAll(".checkout-slide").forEach((slide) => {
-    slide.classList.toggle("active", slide.dataset.checkoutSlide === (step === 1 ? "sender" : "receiver"));
-  });
-  form.querySelectorAll("[data-step-dot]").forEach((dot) => {
-    dot.classList.toggle("active", Number(dot.dataset.stepDot) <= step);
-  });
 
-  const backBtn = document.getElementById("checkout-back-btn");
-  const nextBtn = document.getElementById("checkout-next-btn");
-  const submitBtn = document.getElementById("checkout-submit-btn");
+  // Ocultar todos los steps
+  document.querySelectorAll("[data-checkout-step]").forEach((el) => (el.style.display = "none"));
+  document.getElementById("checkout-payment-step").style.display = "none";
+  document.getElementById("checkout-actions-step1").style.display = "none";
 
-  if (backBtn) backBtn.style.display = step === 1 ? "none" : "block";
-  if (nextBtn) nextBtn.style.display = step === 1 ? "block" : "none";
-  if (submitBtn) submitBtn.style.display = step === 2 ? "block" : "none";
+  // Mostrar step actual
+  if (step === 1 || step === 2) {
+    const stepEl = document.querySelector(`[data-checkout-step="${step}"]`);
+    if (stepEl) stepEl.style.display = "block";
+    document.getElementById("checkout-actions-step1").style.display = "flex";
+  } else if (step === 3) {
+    // Paso 3: Métodos de pago
+    await renderPaymentMethods();
+    document.getElementById("checkout-payment-step").style.display = "block";
+  }
 
   return true;
 }
 
 function validateCheckoutStep(step) {
-  const selector = step === 1
-    ? '[data-checkout-slide="sender"] input, [data-checkout-slide="sender"] textarea'
-    : '[data-checkout-slide="receiver"] input, [data-checkout-slide="receiver"] textarea';
+  const stepEl = document.querySelector(`[data-checkout-step="${step}"]`);
+  if (!stepEl) return true;
 
-  const fields = [...document.querySelectorAll(selector)];
+  const fields = [...stepEl.querySelectorAll("input, textarea")];
   const invalid = fields.find((field) => !field.checkValidity());
   if (invalid) {
     invalid.reportValidity();
@@ -183,13 +126,16 @@ function validateCheckoutStep(step) {
 
 async function submitOrder(form) {
   const btn = form.querySelector('button[type="submit"]');
-  const errorEl = document.getElementById("checkout-error");
+  const errorEl = document.getElementById("payment-instructions");
   const cart = getCart();
 
-  if (!validateCheckoutStep(2)) return;
+  if (!currentSelectedMethod) {
+    alert("Por favor selecciona un método de pago");
+    return;
+  }
 
   btn.disabled = true;
-  btn.textContent = "Enviando pedido...";
+  btn.textContent = "Creando pedido...";
   if (errorEl) errorEl.style.display = "none";
 
   const senderName = fieldValue(form, "sender_name") || fieldValue(form, "customer_name");
@@ -217,6 +163,7 @@ async function submitOrder(form) {
       category: i.category,
     })),
     total: getTotal(),
+    payment_method: currentSelectedMethod,
     status: "pending",
   };
 
@@ -231,14 +178,91 @@ async function submitOrder(form) {
     form.reset();
     window.location.href = "./pago.html";
   } catch (err) {
-    if (errorEl) {
-      errorEl.textContent = err.message || "❌ No pudimos crear tu pedido. Por favor intenta de nuevo o contacta a soporte: +53 5 8324155";
-      errorEl.style.display = "block";
+    const errorDisplay = document.getElementById("checkout-error-step1");
+    if (errorDisplay) {
+      errorDisplay.textContent = err.message || "❌ No pudimos crear tu pedido. Por favor intenta de nuevo o contacta a soporte: +53 5 8324155";
+      errorDisplay.style.display = "block";
     }
   } finally {
     btn.disabled = false;
-    btn.textContent = "Enviar Pedido";
+    btn.textContent = "He realizado el pago, continuar";
   }
+}
+
+async function renderPaymentMethods() {
+  try {
+    // Mostrar orden y total
+    document.getElementById("checkout-order-display").textContent = `#${currentOrderId || "-"}`;
+    document.getElementById("checkout-total-display").textContent = `$${currentTotal.toFixed(2)}`;
+
+    // Cargar métodos de pago
+    const metodos = await cargarMetodosPago();
+    const container = document.getElementById("checkout-methods-container");
+
+    if (!container) return;
+
+    if (!metodos.length) {
+      container.innerHTML = '<div class="alerta">Sin métodos de pago disponibles</div>';
+      return;
+    }
+
+    // Renderizar métodos de pago
+    container.innerHTML = metodos.map(metodo => `
+      <div class="method-card" data-method="${metodo.id}" data-method-name="${metodo.method_name}" data-instructions="${escapeHtml(metodo.instructions || '')}">
+        <div class="method-content">
+          ${metodo.image_url ? `<img src="${metodo.image_url}" alt="${metodo.method_name}" class="method-image">` : `<div class="method-icon">${getIconoMetodo(metodo.method_name)}</div>`}
+          <div class="method-info">
+            <strong>${metodo.method_name}</strong>
+            ${metodo.account_number ? `<small>${metodo.account_number}</small>` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Event listeners para seleccionar método
+    container.querySelectorAll(".method-card").forEach(card => {
+      card.addEventListener("click", () => {
+        selectPaymentMethod(card.dataset.method, card.dataset.methodName, card.dataset.instructions);
+      });
+    });
+  } catch (err) {
+    console.error("Error cargando métodos:", err);
+  }
+}
+
+function selectPaymentMethod(methodId, methodName, instructions) {
+  // Marcar método seleccionado
+  document.querySelectorAll(".method-card").forEach(card => card.classList.remove("selected"));
+  document.querySelector(`[data-method="${methodId}"]`)?.classList.add("selected");
+
+  currentSelectedMethod = methodId;
+
+  // Mostrar instrucciones
+  const instructionsDiv = document.getElementById("payment-instructions");
+  const instructionsText = document.getElementById("payment-instructions-text");
+
+  if (instructions) {
+    instructionsText.innerHTML = instructions.split('\n').map(line => `<div>${escapeHtml(line)}</div>`).join('');
+    instructionsDiv.style.display = "block";
+  } else {
+    instructionsDiv.style.display = "none";
+  }
+}
+
+function getIconoMetodo(nombre) {
+  const iconos = {
+    'zelle': '💳',
+    'tocopay': '💰',
+    'paypal': '🅿️',
+    'stripe': '💸'
+  };
+  return iconos[nombre.toLowerCase()] || '💵';
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function fieldValue(form, name) {

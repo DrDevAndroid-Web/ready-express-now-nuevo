@@ -17,7 +17,7 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="./css/styles.css?v8" />
-  <link rel="icon" type="image/png" href="./images/logo.png" />
+  <link rel="icon" type="image/png" href="./images/favicon.png" />
 </head>
 <body>
 
@@ -386,104 +386,143 @@
       <form id="checkout-form" novalidate>
 
         <!-- DATOS DEL REMITENTE -->
-        <div class="form-row">
+        <div data-checkout-step="1">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="sender_name">
+                Nombre completo del remitente
+                <span class="required">*</span>
+              </label>
+
+              <input
+                type="text"
+                id="sender_name"
+                name="sender_name"
+                placeholder="Tu nombre completo"
+                required
+                aria-describedby="checkout-error"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="sender_phone">
+                Teléfono / WhatsApp
+                <span class="required">*</span>
+              </label>
+
+              <input
+                type="tel"
+                id="sender_phone"
+                name="sender_phone"
+                placeholder="+1 (555) 000-0000"
+                required
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- DATOS DEL RECEPTOR -->
+        <div data-checkout-step="2" style="display:none">
           <div class="form-group">
-            <label for="sender_name">
-              Nombre completo del remitente
+            <label for="receiver_name">
+              Nombre del familiar o persona que recibe
               <span class="required">*</span>
             </label>
 
             <input
               type="text"
-              id="sender_name"
-              name="sender_name"
-              placeholder="Tu nombre completo"
+              id="receiver_name"
+              name="receiver_name"
+              placeholder="Nombre de quien recibe"
               required
-              aria-describedby="checkout-error"
             >
           </div>
 
           <div class="form-group">
-            <label for="sender_phone">
-              Teléfono / WhatsApp
+            <label for="customer_address">
+              Dirección de entrega en Guantánamo
+              <span class="required">*</span>
+            </label>
+
+            <input
+              type="text"
+              id="customer_address"
+              name="customer_address"
+              placeholder="Calle, número, reparto, municipio"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="receiver_phone">
+              Teléfono de la persona que recibe
               <span class="required">*</span>
             </label>
 
             <input
               type="tel"
-              id="sender_phone"
-              name="sender_phone"
-              placeholder="+1 (555) 000-0000"
+              id="receiver_phone"
+              name="receiver_phone"
+              placeholder="+53 5XXX-XXXX"
               required
             >
           </div>
         </div>
 
-        <!-- DATOS DEL RECEPTOR -->
-        <div class="form-group">
-          <label for="receiver_name">
-            Nombre del familiar o persona que recibe
-            <span class="required">*</span>
-          </label>
-
-          <input
-            type="text"
-            id="receiver_name"
-            name="receiver_name"
-            placeholder="Nombre de quien recibe"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="customer_address">
-            Dirección de entrega en Guantánamo
-            <span class="required">*</span>
-          </label>
-
-          <input
-            type="text"
-            id="customer_address"
-            name="customer_address"
-            placeholder="Calle, número, reparto, municipio"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="receiver_phone">
-            Teléfono de la persona que recibe
-            <span class="required">*</span>
-          </label>
-
-          <input
-            type="tel"
-            id="receiver_phone"
-            name="receiver_phone"
-            placeholder="+53 5XXX-XXXX"
-            required
-          >
-        </div>
-
         <!-- NOTAS -->
-        <div class="form-group">
-          <label for="delivery_notes">
-            Notas de entrega
-          </label>
+        <div data-checkout-step="2" style="display:none">
+          <div class="form-group">
+            <label for="delivery_notes">
+              Notas de entrega
+            </label>
 
-          <textarea
-            id="delivery_notes"
-            name="delivery_notes"
-            rows="2"
-            placeholder="Referencias adicionales para la entrega (opcional)"
-          ></textarea>
+            <textarea
+              id="delivery_notes"
+              name="delivery_notes"
+              rows="2"
+              placeholder="Referencias adicionales para la entrega (opcional)"
+            ></textarea>
+          </div>
         </div>
 
-        <p class="form-error" id="checkout-error"></p>
+        <!-- PASO 3: MÉTODO DE PAGO -->
+        <div id="checkout-payment-step" style="display:none">
+          <div class="checkout-step-header">
+            <h4>Paso 3: Selecciona tu método de pago</h4>
+          </div>
 
-        <button type="submit" class="form-submit">
-          Confirmar Pedido
-        </button>
+          <div class="payment-summary" style="background:#f8f9fa;padding:16px;border-radius:8px;margin-bottom:20px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span>Orden</span>
+              <strong id="checkout-order-display">#-</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span>Total a pagar</span>
+              <strong id="checkout-total-display" style="color:var(--primary);font-size:1.2rem">$0.00</strong>
+            </div>
+          </div>
+
+          <span class="method-label">Elige cómo deseas pagar <span class="required">*</span></span>
+          <div class="methods-grid" id="checkout-methods-container"></div>
+
+          <div id="payment-instructions" style="display:none;margin-top:20px;padding:16px;background:#e7f5ff;border-left:4px solid var(--primary);border-radius:4px">
+            <strong>Instrucciones de pago:</strong>
+            <div id="payment-instructions-text" style="margin-top:8px;font-size:0.95rem;line-height:1.6"></div>
+          </div>
+
+          <p class="form-error" id="checkout-error"></p>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+            <button type="button" id="checkout-back-btn" class="form-submit" style="background-color:#6c757d">Atrás</button>
+            <button type="submit" id="checkout-submit-btn" class="form-submit" style="flex:1">He realizado el pago, continuar</button>
+          </div>
+        </div>
+
+        <p class="form-error" id="checkout-error-step1" style="display:none"></p>
+
+        <div id="checkout-actions-step1" style="display:flex;gap:12px;flex-wrap:wrap">
+          <button type="button" id="checkout-next-btn" class="form-submit">Siguiente paso →</button>
+        </div>
 
       </form>
     </div>
