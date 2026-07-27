@@ -196,9 +196,11 @@ async function submitOrder(form) {
       category: i.category,
     })),
     total: getTotal(),
-    payment_method: currentSelectedMethod,
     status: "pending",
   };
+
+  // Guardar método de pago seleccionado para el siguiente paso (pago.html)
+  localStorage.setItem("ren_selected_payment_method", currentSelectedMethod);
 
   try {
     const order = await createOrder(orderData);
