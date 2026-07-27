@@ -59,7 +59,17 @@ export function initCheckout() {
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (checkoutStep === 2) {
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn?.textContent || "Confirmar Pedido";
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span>Cargando métodos...';
+      }
       await goToCheckoutStep(3);
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
       return;
     }
     if (checkoutStep === 3) {
@@ -195,9 +205,14 @@ async function renderPaymentMethods() {
     document.getElementById("checkout-order-display").textContent = `#${currentOrderId || "-"}`;
     document.getElementById("checkout-total-display").textContent = `$${currentTotal.toFixed(2)}`;
 
+    // Mostrar estado de carga
+    const container = document.getElementById("checkout-methods-container");
+    if (container) {
+      container.innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span> Cargando métodos de pago...</div>';
+    }
+
     // Cargar métodos de pago
     const metodos = await cargarMetodosPago();
-    const container = document.getElementById("checkout-methods-container");
 
     if (!container) return;
 
