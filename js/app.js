@@ -1,8 +1,8 @@
-import { initCart, getCart } from "./cart.js?v8";
-import { initProducts } from "./products.js?v8";
-import { initCheckout, openCheckoutAtSavedStep, hasSavedCheckoutStep } from "./checkout.js?v8";
-import { redirectToPendingPayment } from "./payment.js?v8";
-import { inicializarMetodosPago } from "./payment-methods.js?v8";
+import { initCart, getCart } from "./cart.js?v9";
+import { initProducts } from "./products.js?v9";
+import { initCheckout, openCheckoutAtSavedStep, hasSavedCheckoutStep } from "./checkout.js?v9";
+import { redirectToPendingPayment } from "./payment.js?v9";
+import { inicializarMetodosPago } from "./payment-methods.js?v9";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (redirectToPendingPayment()) return;
