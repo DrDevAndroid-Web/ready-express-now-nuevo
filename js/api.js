@@ -72,9 +72,16 @@ function getUserFriendlyError(error) {
   return `❌ Algo salió mal. Por favor intenta de nuevo.${SUPPORT_MSG}`;
 }
 
+function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+}
+
 async function request(path, options = {}) {
   try {
-    const res = await fetch(`${API_BASE}${path}`, options);
+    const res = await fetchWithTimeout(`${API_BASE}${path}`, options, 10000);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       const userMessage = getUserFriendlyError(err);
@@ -85,6 +92,9 @@ async function request(path, options = {}) {
     }
     return res.json();
   } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("⏱️ La solicitud tardó demasiado. Verifica tu conexión e intenta de nuevo.");
+    }
     if (err.message?.includes("⚠️") || err.message?.includes("❌") || err.message?.includes("📡") || err.message?.includes("⏱️") || err.message?.includes("📱")) {
       throw err;
     }
@@ -108,10 +118,10 @@ export const createOrder = (data) =>
 
 export async function uploadPayment(formData) {
   try {
-    const res = await fetch(`${API_BASE}/payments/upload`, {
+    const res = await fetchWithTimeout(`${API_BASE}/payments/upload`, {
       method: "POST",
       body: formData,
-    });
+    }, 30000);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       const userMessage = getUserFriendlyError(err);
@@ -122,6 +132,9 @@ export async function uploadPayment(formData) {
     }
     return res.json();
   } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("⏱️ El envío tardó demasiado. Verifica tu conexión e intenta de nuevo.");
+    }
     if (err.message?.includes("⚠️") || err.message?.includes("❌") || err.message?.includes("📡") || err.message?.includes("⏱️") || err.message?.includes("📱")) {
       throw err;
     }
