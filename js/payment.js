@@ -1,6 +1,6 @@
-import { uploadPayment, cancelOrder } from "./api.js?v9";
-import { cargarMetodosPago, obtenerMetodoPago } from "./payment-methods.js?v9";
-import { generarPDFRecibo, cargarLibreriasPDF } from "./receipt-pdf.js?v9";
+import { uploadPayment, cancelOrder } from "./api.js?v10";
+import { cargarMetodosPago, obtenerMetodoPago } from "./payment-methods.js?v10";
+import { generarPDFRecibo, cargarLibreriasPDF } from "./receipt-pdf.js?v10";
 
 export const PENDING_PAYMENT_KEY = "ren_pending_payment";
 

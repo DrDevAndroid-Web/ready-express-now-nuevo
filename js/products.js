@@ -1,5 +1,5 @@
-import { getProductos, getInfo, getCombos, getElectrodomesticos } from "./api.js?v9";
-import { addItem } from "./cart.js?v9";
+import { getProductos, getInfo, getCombos, getElectrodomesticos } from "./api.js?v10";
+import { addItem } from "./cart.js?v10";
 
 const ICON_MAP = {
   // Combos

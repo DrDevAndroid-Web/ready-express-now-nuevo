@@ -1,4 +1,4 @@
-import { getInfo } from "./api.js?v9";
+import { getInfo } from "./api.js?v10";
 
 let methodosCache = null;
 let ultimaCarga = null;
