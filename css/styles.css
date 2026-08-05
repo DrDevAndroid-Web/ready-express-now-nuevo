@@ -670,7 +670,7 @@ footer ul li a:hover { color: var(--orange-light); }
 .cart-footer { padding: 16px 24px; border-top: 1px solid var(--border); }
 .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 16px; }
 .cart-total-row span { font-size: 1.1rem; }
-.cart-total-row strong { font-size: 1.2rem; color: var(--white); }
+.cart-total-row strong { font-size: 1.2rem; color: var(--navy); }
 #cart-checkout-btn {
   width: 100%; padding: 14px; background: var(--orange); color: var(--navy-dark);
   border-radius: 50px; font-size: 1rem; font-weight: 700;

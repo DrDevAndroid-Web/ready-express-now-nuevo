@@ -116,6 +116,11 @@ export const createOrder = (data) =>
     body: JSON.stringify(data),
   });
 
+export const cancelOrder = (orderId) =>
+  request(`/orders/${encodeURIComponent(orderId)}/cancel`, {
+    method: "PATCH",
+  });
+
 export async function uploadPayment(formData) {
   try {
     const res = await fetchWithTimeout(`${API_BASE}/payments/upload`, {

@@ -1,15 +1,26 @@
-import { getProductos, getInfo, getCombos } from "./api.js?v9";
+import { getProductos, getInfo, getCombos, getElectrodomesticos } from "./api.js?v9";
 import { addItem } from "./cart.js?v9";
 
 const ICON_MAP = {
+  // Combos
   combos: "🍱", combo: "🍱",
-  proteinas: "🥩", proteina: "🥩", carnes: "🥩", pollo: "🍗",
-  granos: "🍚", legumbres: "🍚",
-  aceites: "🫒", aceite: "🫒",
-  lacteos: "🥛", lacticos: "🥛",
-  aseo: "🧹", limpieza: "🧹",
+  // Carnes y proteínas
+  carnes: "🥩", proteinas: "🥩", proteina: "🥩", pollo: "🍗",
+  // Embutidos y lácteos
+  "embutidos y lacteos": "🥛", lacteos: "🥛", lacticos: "🥛",
+  // Condimentos y aceites
+  condimentos: "🧂", aceites: "🫒", aceite: "🫒",
+  // Conservas
+  "conservas y enlatados": "🥫", conservas: "🥫",
+  // Pastas y granos
+  pastas: "🍝", granos: "🍚", legumbres: "🍚",
+  // Bebidas
   bebidas: "🥤",
-  viveres: "🛒",
+  // Aseo y limpieza
+  aseo: "🧹", limpieza: "🧹",
+  // Varios / miscelánea
+  otros: "📦", viveres: "🛒",
+  // Electrodomésticos
   electrodomesticos: "⚡",
 };
 
@@ -48,7 +59,7 @@ function normalize(item, defaultCategory) {
 
   return {
     id: item.id,
-    category: item.categoria || item.category || defaultCategory || "General",
+    category: (item.categoria || item.category || defaultCategory || "General").trim(),
     nombre: item.nombre || item.name || item.titulo || "Sin nombre",
     precio: parseFloat(item.precio || item.price || item.costo || 0),
     descripcion: descFinal,
@@ -226,10 +237,49 @@ async function loadInfoBanner() {
   }
 }
 
+/* ════════ Productos Varios (Electrodomesticos) section ════════ */
+async function loadElectro() {
+  const grid = document.getElementById("electro-grid");
+  const errorEl = document.getElementById("electro-error");
+  if (!grid) return;
+
+  if (errorEl) errorEl.style.display = "none";
+  grid.innerHTML = renderSkeleton(4);
+
+  try {
+    const raw = await getElectrodomesticos();
+    const data = raw?.data ?? raw ?? [];
+    const items = data
+      .filter((i) => i.disponible !== false)
+      .map((i) => ({
+        id: i.id,
+        category: "Productos Varios",
+        nombre: [i.item, i.tipo].filter(Boolean).join(" — "),
+        precio: parseFloat(i.precio || 0),
+        descripcion: i.tipo || "",
+        imagen: i.img || null,
+        disponible: i.disponible !== false,
+      }));
+
+    if (!items.length) {
+      grid.innerHTML = `<div class="empty-state"><span>⚡</span><p>No hay productos varios disponibles en este momento</p></div>`;
+      return;
+    }
+    grid.innerHTML = items.map(renderCard).join("");
+  } catch (err) {
+    grid.innerHTML = "";
+    if (errorEl) {
+      errorEl.style.display = "block";
+      errorEl.textContent = "⚠️ No pudimos cargar los productos varios. Verifica tu conexión a internet o intenta de nuevo en unos momentos.";
+    }
+  }
+}
+
 export function initProducts() {
   loadInfoBanner();
   loadCombos();
   loadProducts();
+  loadElectro();
 }
 
 /* ════════ Global helpers for inline onclick ════════ */

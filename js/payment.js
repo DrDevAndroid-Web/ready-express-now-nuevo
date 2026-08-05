@@ -1,4 +1,4 @@
-import { uploadPayment } from "./api.js?v9";
+import { uploadPayment, cancelOrder } from "./api.js?v9";
 import { cargarMetodosPago, obtenerMetodoPago } from "./payment-methods.js?v9";
 import { generarPDFRecibo, cargarLibreriasPDF } from "./receipt-pdf.js?v9";
 
@@ -175,12 +175,21 @@ function bindPaymentEvents() {
   });
 
   // Botón cancelar
-  document.getElementById("btn-cancelar-pago")?.addEventListener("click", (e) => {
+  document.getElementById("btn-cancelar-pago")?.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (confirm("¿Estás seguro de que deseas cancelar? Se perderán los datos del pedido.")) {
-      clearPendingPayment();
-      window.location.href = "./index.html";
+    if (!confirm("¿Estás seguro de que deseas cancelar? Se perderán los datos del pedido.")) return;
+
+    const pending = getPendingPayment();
+    if (pending?.orderId) {
+      try {
+        await cancelOrder(pending.orderId);
+      } catch (err) {
+        console.warn("[cancel] No se pudo notificar al servidor:", err.message);
+      }
     }
+
+    clearPendingPayment();
+    window.location.href = "./index.html";
   });
 
   initDropzone();
